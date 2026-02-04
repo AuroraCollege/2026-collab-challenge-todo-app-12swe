@@ -79,8 +79,9 @@ def login():
 
 @app.route("/logout")
 def logout():
-    flash('Logout not yet implemented.', 'danger')
-    return render_template('login.html')
+    session.clear()
+    flash('You have Logged out successfully.', 'success')
+    return render_template('index.html')
 
 @app.route("/dashboard")
 @login_required
