@@ -81,7 +81,7 @@ def login():
 def logout():
     session.clear()
     flash('You have Logged out successfully.', 'success')
-    return render_template('index.html')
+    return render_template('login.html')
 
 @app.route("/dashboard")
 @login_required
