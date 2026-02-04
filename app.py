@@ -74,7 +74,29 @@ def register():
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        flash('Login functionality is not yet implemented.', 'warning')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if not username or not password:
+            flash('Username and password are required.', 'danger')
+            return render_template('login.html')
+        
+        # Query database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if user and check_password_hash(user['password_hash'], password):
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            flash(f'Welcome back, {username}!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password.', 'danger')
+            return render_template('login.html')
+    
     return render_template('login.html')
 
 @app.route("/logout")
@@ -122,8 +144,23 @@ def create_event():
 @app.route("/event/<int:event_id>/edit", methods=['GET', 'POST'])
 @login_required
 def edit_event(event_id):
-    flash('Edit event functionality is not yet implemented.', 'warning')
-    return render_template('edit_event.html', event=None)
+    if request.method == 'GET':
+        # Query database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM events WHERE id = ?', (event_id,))
+        event = cursor.fetchone()
+        conn.close()
+        return render_template('edit_event.html', event=event)
+    else:
+        ### Updates Title ONLY - Need to add other fields too! ###
+        title = request.form.get('title')
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE events SET title = ? WHERE id = ?', (title, event_id,))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('dashboard'))
 
 @app.route("/event/<int:event_id>/delete", methods=['POST'])
 @login_required
